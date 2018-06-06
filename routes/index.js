@@ -6,14 +6,6 @@ const tipController = require('../controllers/tip');
 const userController = require('../controllers/user');
 const sessionController = require('../controllers/session');
 
-//-----------------------------------------------------------
-
-// autologout
-router.all('*',sessionController.deleteExpiredUserSession);
-
-//-----------------------------------------------------------
-
-// History: Restoration routes.
 
 // Redirection to the saved restoration route.
 function redirectBack(req, res, next) {
@@ -30,6 +22,8 @@ function saveBack(req, res, next) {
     next();
 }
 
+
+
 // Restoration routes are GET routes that do not end in:
 //   /new, /edit, /play, /check, /session, or /:id.
 router.get([
@@ -39,7 +33,6 @@ router.get([
     '/users/:id(\\d+)/quizzes',
     '/quizzes'], saveBack);
 
-//-----------------------------------------------------------
 
 /* GET home page. */
 router.get('/', (req, res, next) => {
@@ -54,15 +47,33 @@ router.get('/author', (req, res, next) => {
 
 // Autoload for routes using :quizId
 router.param('quizId', quizController.load);
+
+// autologout
+router.all('*',sessionController.deleteExpiredUserSession);
+
+
+// Autoload for routes using :quizId
+router.param('quizId', quizController.load);
 router.param('userId', userController.load);
-router.param('tipId',  tipController.load);
+router.param('tipId', tipController.load);
+
+// Routes for the resource /quizzes
+router.get('/quizzes',                     quizController.index);
+router.get('/quizzes/:quizId(\\d+)',       quizController.show);
+router.get('/quizzes/new',                 quizController.new);
+router.post('/quizzes',                    quizController.create);
+router.get('/quizzes/:quizId(\\d+)/edit',  quizController.edit);
+router.put('/quizzes/:quizId(\\d+)',       quizController.update);
+router.delete('/quizzes/:quizId(\\d+)',    quizController.destroy);
+
+router.get('/quizzes/:quizId(\\d+)/play',  quizController.play);
+router.get('/quizzes/:quizId(\\d+)/check', quizController.check);
 
 
 // Routes for the resource /session
 router.get('/session',    sessionController.new);     // login form
 router.post('/session',   sessionController.create);  // create sesion
 router.delete('/session', sessionController.destroy); // close sesion
-
 
 // Routes for the resource /users
 router.get('/users',
@@ -92,35 +103,9 @@ router.get('/users/:userId(\\d+)/quizzes',
     sessionController.loginRequired,
     quizController.index);
 
-
-// Routes for the resource /quizzes
-router.get('/quizzes',
-	quizController.index);
-router.get('/quizzes/:quizId(\\d+)',
-	quizController.show);
-router.get('/quizzes/new',
-    sessionController.loginRequired,
-	quizController.new);
-router.post('/quizzes',
-    sessionController.loginRequired,
-	quizController.create);
-router.get('/quizzes/:quizId(\\d+)/edit',
-    sessionController.loginRequired,
-    quizController.adminOrAuthorRequired,
-	quizController.edit);
-router.put('/quizzes/:quizId(\\d+)',
-    sessionController.loginRequired,
-    quizController.adminOrAuthorRequired,
-	quizController.update);
-router.delete('/quizzes/:quizId(\\d+)',
-    sessionController.loginRequired,
-    quizController.adminOrAuthorRequired,
-	quizController.destroy);
-
-router.get('/quizzes/:quizId(\\d+)/play',  quizController.play);
-router.get('/quizzes/:quizId(\\d+)/check', quizController.check);
-
-
+//Carga la ruta a randomplay
+router.get('/quizzes/randomplay',          quizController.randomplay);
+router.get('/quizzes/randomcheck/:quizId(\\d+)', quizController.randomcheck);
 
 router.post('/quizzes/:quizId(\\d+)/tips',
     sessionController.loginRequired,
@@ -132,7 +117,8 @@ router.put('/quizzes/:quizId(\\d+)/tips/:tipId(\\d+)/accept',
 router.delete('/quizzes/:quizId(\\d+)/tips/:tipId(\\d+)',
     sessionController.loginRequired,
     quizController.adminOrAuthorRequired,
-    tipController.destroy);
+tipController.destroy);
+
 
 
 module.exports = router;
